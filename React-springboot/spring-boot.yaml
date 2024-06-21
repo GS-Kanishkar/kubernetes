@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: form-springboot-app
+  template:
+    metadata:
+      labels:
+        app: form-springboot-app
+    spec:
+      containers:
+      - name: backend
+        image: zbackend-img:v1
+        ports:
+          - containerPort: 8080
+        env:
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-config
+                key: HOST
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-config
+                key: MYSQL_DATABASE
+          - name: DB_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-config
+                key: MYSQL_USER      
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secrets
+                key: MYSQL_PASSWORD
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://$(DB_HOST)/$(DB_NAME)?allowPublicKeyRetrieval=true&useSSL=false
+          - name: SPRING_DATASOURCE_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                name: mysql-config
+                key: MYSQL_USER
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secrets
+                key: MYSQL_PASSWORD
+                
+                
+      
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: form-springboot-app
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
