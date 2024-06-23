@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: frontend-zzz:v1
+        image: gskanishkar/frontend:1
         ports:
         - containerPort: 80
 ---
